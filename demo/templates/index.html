@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智学伙伴 Demo</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Agent 创新 · 5 分钟可演示闭环</p>
+        <h1>智学伙伴</h1>
+        <p class="subtitle">面向大学生的主动式学习计划与错题复盘 Agent</p>
+      </div>
+      <div class="top-actions">
+        <div class="completion-badge">
+          <span>{{ intro_completion.percent }}%</span>
+          <small>项目介绍目标完成度</small>
+        </div>
+        <form method="post" action="/logout" data-no-ajax>
+          <button type="submit" class="ghost-button">退出</button>
+        </form>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel control-panel">
+        <h2>学习目标</h2>
+        <form method="post" action="/">
+          <label>学生姓名</label>
+          <input type="text" name="name" value="{{ profile.name if profile else defaults.name }}" required>
+
+          <label>课程名称</label>
+          <input type="text" name="subject" value="{{ profile.subject if profile else defaults.subject }}" required>
+
+          <label>考试日期</label>
+          <input type="date" name="exam_date" value="{{ profile.exam_date if profile else defaults.exam_date }}" required>
+
+          <label>每日学习时长（小时）</label>
+          <input type="number" name="daily_hours" min="0.5" step="0.5" value="{{ profile.daily_hours if profile else defaults.daily_hours }}">
+
+          <label>薄弱知识点（用 ; 分隔）</label>
+          <input type="text" name="weak_topics" value="{{ profile.weak_topics if profile else defaults.weak_topics }}">
+
+          <button type="submit">生成复习计划</button>
+        </form>
+      </aside>
+
+      <section class="content">
+        {% if profile %}
+        <section class="panel">
+          <div class="section-title">
+            <h2>学习档案</h2>
+            <a class="ghost-link" href="/reset" data-smooth-link>重置 Demo</a>
+          </div>
+          <div class="metric-grid">
+            <div><strong>{{ profile.name }}</strong><span>学生</span></div>
+            <div><strong>{{ profile.subject }}</strong><span>课程</span></div>
+            <div><strong>{{ profile.exam_date }}</strong><span>考试日期</span></div>
+            <div><strong>{{ profile.daily_hours }} 小时</strong><span>每日时长</span></div>
+          </div>
+          <div class="reminder">{{ active_reminder }}</div>
+          <div class="model-status {{ 'online' if llm_enabled else 'offline' }}">
+            错题分析：{{ openai_model if llm_enabled else "本地规则兜底" }}
+            {% if llm_enabled and openai_base_url %}
+            · {{ openai_base_url }}
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>14 天内动态计划</h2>
+            <span class="pill">{{ summary.completed }}/{{ summary.plan_days }} 已完成</span>
+          </div>
+          <div class="plan-list">
+            {% for item in plan %}
+            <article class="plan-item {% if item.completed %}is-done{% endif %}">
+              <div class="day">Day {{ item.day }} · {{ item.date }}</div>
+              <h3>{{ item.task }}</h3>
+              <p>{{ item.focus }} · {{ item.minutes }} 分钟 · 优先级 {{ item.priority }}</p>
+              <form method="post" action="/toggle/{{ item.day }}">
+                <button type="submit" class="small-btn">{{ "撤销完成" if item.completed else "标记完成" }}</button>
+              </form>
+            </article>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>错题录入与错因分析</h2>
+          <form method="post" action="/wrong" class="wrong-form">
+            <label>错题描述</label>
+            <textarea name="question" rows="3" placeholder="例如：LRU 和 FIFO 的淘汰规则混淆，导致缺页次数算错。" required></textarea>
+
+            <div class="form-row">
+              <div>
+                <label>错误类型</label>
+                <select name="error_type">
+                  {% for type in error_types %}
+                  <option>{{ type }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label>知识点</label>
+                <input type="text" name="knowledge_point" value="页面置换算法 LRU" required>
+              </div>
+            </div>
+
+            <button type="submit">提交错题并生成复盘</button>
+          </form>
+
+          {% if wrong_questions %}
+          <div class="wrong-list">
+            {% for item in wrong_questions %}
+            <article class="wrong-item">
+              <div class="item-head">
+                <strong>{{ item.knowledge_point }}</strong>
+                <span>{{ item.error_type }}</span>
+              </div>
+              <div class="source">{{ item.source }}</div>
+              <p>{{ item.question }}</p>
+              <p class="analysis">{{ item.analysis }}</p>
+              <p class="next-action">{{ item.next_action }}</p>
+              <div class="similar">
+                {% for question in item.similar_questions %}
+                <span>{{ question }}</span>
+                {% endfor %}
+              </div>
+              <form method="post" action="/wrong/{{ loop.index0 }}/delete" class="delete-form">
+                <button type="submit" class="delete-btn">删除这条错题</button>
+              </form>
+            </article>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </section>
+
+        <section class="dashboard">
+          <div class="panel">
+            <h2>薄弱指数</h2>
+            <div class="weak-list">
+              {% for item in weak_topic_scores %}
+              <div class="weak-row">
+                <span>{{ item.topic }}</span>
+                <meter min="0" max="10" value="{{ item.index }}"></meter>
+                <strong>{{ item.index }}/10</strong>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>复盘日程</h2>
+            {% if review_schedule %}
+            <div class="review-list">
+              {% for item in review_schedule %}
+              <div>
+                <strong>{{ item.due }}</strong>
+                <span>{{ item.knowledge_point }} · {{ item.days }} 天后</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty">录入错题后会自动安排 1/3/7 天复盘。</p>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="panel report">
+          <h2>阶段学习报告</h2>
+          <div class="report-grid">
+            <div><strong>{{ summary.completion_rate }}%</strong><span>计划完成率</span></div>
+            <div><strong>{{ summary.wrong_count }}</strong><span>错题记录</span></div>
+            <div><strong>{{ summary.pending }}</strong><span>待完成任务</span></div>
+          </div>
+          <p>当前主要薄弱点：{{ summary.weak_points }}。下一步建议优先复盘高频错题，并把连续出错的知识点自动前移到后续计划中。</p>
+        </section>
+
+        <section class="panel completion">
+          <h2>项目介绍目标核对</h2>
+          <div class="check-grid">
+            {% for name, done in intro_completion.checklist %}
+            <div class="{{ 'done' if done else 'todo' }}">{{ name }}</div>
+            {% endfor %}
+          </div>
+        </section>
+        {% else %}
+        <section class="panel empty-state">
+          <h2>先生成一个学习档案</h2>
+          <p>左侧已经填入项目介绍文档中的“操作系统 14 天复习”示例，提交后即可演示计划生成、错题分析、复盘提醒和学习报告。</p>
+        </section>
+        {% endif %}
+      </section>
+    </section>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 · 智学伙伴</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="login-shell">
+    <section class="login-panel">
+      <p class="eyebrow">智学伙伴 Demo</p>
+      <h1>登录</h1>
+      <p class="subtitle">进入主动式学习计划与错题复盘 Agent。</p>
+      <form method="post" action="/login">
+        <label>账号</label>
+        <input type="text" name="username" value="demo" autocomplete="username" required>
+
+        <label>密码</label>
+        <input type="password" name="password" placeholder="demo2026" autocomplete="current-password" required>
+
+        {% if error %}
+        <div class="login-error">{{ error }}</div>
+        {% endif %}
+
+        <button type="submit">登录</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
