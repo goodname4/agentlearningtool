@@ -83,26 +83,6 @@ h3 {
   color: var(--muted);
 }
 
-.completion-badge {
-  min-width: 154px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 14px;
-  text-align: right;
-}
-
-.completion-badge span {
-  display: block;
-  font-size: 30px;
-  font-weight: 800;
-  color: var(--green);
-}
-
-.completion-badge small {
-  color: var(--muted);
-}
-
 .workspace {
   display: grid;
   grid-template-columns: 330px 1fr;
@@ -450,10 +430,6 @@ meter {
     display: grid;
   }
 
-  .completion-badge {
-    text-align: left;
-  }
-
   .control-panel {
     position: static;
   }
@@ -511,8 +487,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .topbar .subtitle { color: #475569; }
 .eyebrow { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
 .top-actions { display: flex; align-items: center; gap: 1rem; }
-.completion-badge { background: #dbeafe; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.9rem; }
-.completion-badge span { font-weight: bold; color: #1e40af; }
 .ghost-button { background: transparent; border: 1px solid #cbd5e1; padding: 0.3rem 1rem; border-radius: 6px; cursor: pointer; }
 
 .workspace { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; }

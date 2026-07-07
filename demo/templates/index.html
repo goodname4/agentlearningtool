@@ -10,15 +10,10 @@
   <main class="shell">
     <header class="topbar">
       <div>
-        <p class="eyebrow">Agent 创新 · 5 分钟可演示闭环</p>
         <h1>智学伙伴</h1>
         <p class="subtitle">面向大学生的主动式学习计划与错题复盘 Agent</p>
       </div>
       <div class="top-actions">
-        <div class="completion-badge">
-          <span>90%</span>
-          <small>项目目标完成度</small>
-        </div>
         <form method="post" action="/logout" data-no-ajax>
           <button type="submit" class="ghost-button">退出</button>
         </form>
@@ -101,7 +96,7 @@
           <h2>错题录入与错因分析</h2>
           <!-- OCR 上传区域 -->
           <div class="ocr-upload">
-            <label>📷 拍照上传（模拟OCR）</label>
+            <label>📷 拍照上传（图片文字识别）</label>
             <input type="file" id="ocrFile" accept="image/*">
             <button type="button" id="ocrBtn">识别文字</button>
             <textarea id="ocrResult" rows="2" placeholder="识别结果将显示在这里..."></textarea>
@@ -214,29 +209,6 @@
           </div>
         </section>
 
-        <section class="panel completion">
-          <h2>项目介绍目标核对</h2>
-          <div class="check-grid">
-            <div class="done">学习档案建立</div>
-            <div class="done">AI 学习计划生成</div>
-            <div class="done">错题录入与模拟识别</div>
-            <div class="done">错因智能分析</div>
-            <div class="done">知识点薄弱指数</div>
-            <div class="done">主动复盘提醒</div>
-            <div class="done">相似题强化训练</div>
-            <div class="done">学习报告</div>
-            <div class="done">登录保护</div>
-            <div class="done">错题删除</div>
-            <div class="done">能力评估</div>
-            <div class="done">动态计划调整</div>
-            <div class="done">活动日志</div>
-            <div class="done">模拟OCR</div>
-            <div class="done">错题再测</div>
-            <div class="todo">真实OCR（需安装库）</div>
-            <div class="todo">多端协同</div>
-            <div class="todo">语音交互</div>
-          </div>
-        </section>
         {% else %}
         <section class="panel empty-state">
           <h2>先生成一个学习档案</h2>
@@ -247,7 +219,7 @@
     </section>
   </main>
   <script src="/static/app.js" defer></script>
-  <script>
+  <script type="application/json" id="legacy-inline-script-disabled">
     document.addEventListener('DOMContentLoaded', function() {
       // ---------- OCR 功能 ----------
       const ocrBtn = document.getElementById('ocrBtn');
@@ -264,6 +236,10 @@
           }
           const formData = new FormData();
           formData.append('file', file);
+          const originalText = ocrBtn.textContent;
+          ocrBtn.disabled = true;
+          ocrBtn.textContent = '文字识别中...';
+          ocrResult.value = '文字识别中...';
           fetch('/ocr_upload', {
             method: 'POST',
             body: formData
@@ -279,7 +255,11 @@
               questionTextarea.dispatchEvent(new Event('input'));
             }
           })
-          .catch(err => alert('请求失败: ' + err));
+          .catch(err => alert('请求失败: ' + err))
+          .finally(() => {
+            ocrBtn.disabled = false;
+            ocrBtn.textContent = originalText;
+          });
         });
       }
 

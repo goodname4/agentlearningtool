@@ -19,10 +19,90 @@ except ImportError:
 try:
     import easyocr
     OCR_AVAILABLE = True
-    ocr_reader = easyocr.Reader(['ch_sim', 'en'], gpu=False)
 except ImportError:
+    easyocr = None
     OCR_AVAILABLE = False
-    ocr_reader = None
+ocr_reader = None
+ocr_error = None
+
+def get_ocr_reader():
+    global ocr_reader, ocr_error
+    if not OCR_AVAILABLE:
+        return None, "EasyOCR库未安装"
+    if ocr_reader:
+        return ocr_reader, None
+    try:
+        ocr_reader = easyocr.Reader(['ch_sim', 'en'], gpu=False, verbose=False)
+        ocr_error = None
+        return ocr_reader, None
+    except Exception as e:
+        ocr_error = str(e)
+        return None, ocr_error
+
+def build_ocr_image_variants(image):
+    from PIL import Image, ImageOps, ImageEnhance, ImageFilter
+
+    image = ImageOps.exif_transpose(image).convert("RGB")
+    width, height = image.size
+    max_side = max(width, height)
+    if max_side > 1800:
+        scale = 1800 / max_side
+    elif max_side < 1200:
+        scale = min(2, max(1, 1200 / max_side))
+    else:
+        scale = 1
+    if scale != 1:
+        new_size = (int(width * scale), int(height * scale))
+        image = image.resize(new_size, resample=Image.Resampling.LANCZOS)
+
+    gray = ImageOps.grayscale(image)
+    enhanced = ImageOps.autocontrast(gray)
+    enhanced = ImageEnhance.Contrast(enhanced).enhance(1.8)
+    enhanced = ImageEnhance.Sharpness(enhanced).enhance(1.6)
+    enhanced = enhanced.filter(ImageFilter.SHARPEN)
+
+    threshold = enhanced.point(lambda p: 255 if p > 150 else 0)
+
+    return [enhanced, image, threshold]
+
+def run_best_ocr(reader, image):
+    import numpy as np
+
+    best_text = ""
+    best_score = -1
+    common_options = {
+        "detail": 1,
+        "paragraph": False,
+        "decoder": "greedy",
+        "text_threshold": 0.5,
+        "low_text": 0.3,
+        "link_threshold": 0.4,
+        "contrast_ths": 0.05,
+        "adjust_contrast": 0.7,
+        "add_margin": 0.05,
+        "mag_ratio": 1.0,
+    }
+
+    for variant in build_ocr_image_variants(image):
+        result = reader.readtext(np.array(variant), **common_options)
+        lines = []
+        confidences = []
+        for item in result:
+            if len(item) >= 3:
+                lines.append(str(item[1]).strip())
+                confidences.append(float(item[2]))
+        text = "\n".join(line for line in lines if line)
+        if not text:
+            continue
+        avg_confidence = sum(confidences) / len(confidences) if confidences else 0
+        score = avg_confidence * 100 + min(len(text), 200) + len(lines) * 3
+        if score > best_score:
+            best_score = score
+            best_text = text
+        if avg_confidence >= 0.55 and len(text) >= 8:
+            return text
+
+    return best_text
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "demo-secret-key-2026")
@@ -437,19 +517,22 @@ def ocr_upload():
         return jsonify({"error": "空文件名"}), 400
 
     recognized_text = ""
-    if OCR_AVAILABLE and ocr_reader:
+    reader, reader_error = get_ocr_reader()
+    if reader:
         try:
             from PIL import Image
-            import numpy as np
             img_bytes = file.read()
             image = Image.open(BytesIO(img_bytes))
-            img_np = np.array(image)
-            result = ocr_reader.readtext(img_np, detail=0)
-            recognized_text = "\n".join(result)
+            recognized_text = run_best_ocr(reader, image)
+            if not recognized_text:
+                recognized_text = "未识别到文字，请尝试裁剪题目区域后重新上传。"
         except Exception as e:
             recognized_text = f"OCR识别失败: {str(e)}"
     else:
-        recognized_text = f"【模拟OCR】识别到图片：{file.filename}，请手动输入题目内容。"
+        recognized_text = (
+            f"【OCR暂不可用】{reader_error or 'EasyOCR初始化失败'}\n"
+            f"已接收图片：{file.filename}，请先手动输入题目内容。"
+        )
     return jsonify({"text": recognized_text})
 
 # ---------------------------- 测验生成 ----------------------------
