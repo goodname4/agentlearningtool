@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="module-grid wrong-grid">
+  <section class="panel">
+    <h2>录入错题</h2>
+    <form method="post" action="/wrong" class="wrong-form" enctype="multipart/form-data">
+      <label>拍照识别</label>
+      <input type="file" name="photo" accept="image/*">
+      <p class="field-hint">可直接上传题目照片，系统会先识别题干、知识点和错误类型；下方文字也可以作为手动修正。</p>
+
+      <label>图片提取文字</label>
+      <textarea class="ocr-output" rows="6" readonly placeholder="上传图片并点击“识别并分析”后，这里会显示 OCR 逐字识别结果、整理题干、知识点、错误类型和置信度。">{{ last_photo_text or "" }}</textarea>
+
+      <label>错题描述</label>
+      <textarea name="question" rows="5" placeholder="例如：LRU 和 FIFO 的淘汰规则混淆，导致缺页次数算错。"></textarea>
+
+      <div class="form-row">
+        <div>
+          <label>错误类型</label>
+          <select name="error_type">
+            {% for type in error_types %}
+            <option>{{ type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label>知识点</label>
+          <input type="text" name="knowledge_point" placeholder="可留空，由拍照识别自动判断">
+        </div>
+      </div>
+
+      <button type="submit">识别并分析</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">
+      <h2>错题库</h2>
+      <span class="pill">{{ wrong_questions | length }} 条</span>
+    </div>
+    {% if wrong_questions %}
+    <div class="wrong-list">
+      {% for item in wrong_questions %}
+      <article class="wrong-item">
+        <div class="item-head">
+          <strong>{{ item.knowledge_point }}</strong>
+          <span>{{ item.error_type }}</span>
+        </div>
+        <div class="source">{{ item.source }}</div>
+        <p>{{ item.question }}</p>
+        <p class="analysis">{{ item.analysis }}</p>
+        <p class="next-action">{{ item.next_action }}</p>
+        <div class="similar">
+          {% for question in item.similar_questions %}
+          <span>{{ question }}</span>
+          {% endfor %}
+        </div>
+        <form method="post" action="/wrong/{{ loop.index0 }}/delete" class="delete-form">
+          <button type="submit" class="delete-btn">删除</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">暂无错题记录。</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

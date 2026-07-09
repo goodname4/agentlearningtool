@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="module-grid review-grid">
+  <section class="panel">
+    <h2>薄弱点诊断</h2>
+    {% if weak_topic_scores %}
+    <div class="weak-list">
+      {% for item in weak_topic_scores %}
+      <div class="weak-row">
+        <span>{{ item.topic }}</span>
+        <meter min="0" max="10" value="{{ item.index }}"></meter>
+        <strong>{{ item.index }}/10</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">填写薄弱知识点后会显示诊断结果。</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>复盘日程</h2>
+    {% if review_schedule %}
+    <div class="review-list">
+      {% for item in review_schedule %}
+      <div>
+        <strong>{{ item.due }}</strong>
+        <span>{{ item.knowledge_point }} · {{ item.days }} 天后</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">录入错题后会自动安排 1 / 3 / 7 天复盘。</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

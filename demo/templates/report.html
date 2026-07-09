@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="report-layout">
+  <section class="panel report">
+    <h2>阶段学习报告</h2>
+    <div class="report-grid">
+      <div><strong>{{ summary.completion_rate }}%</strong><span>计划完成率</span></div>
+      <div><strong>{{ summary.wrong_count }}</strong><span>错题记录</span></div>
+      <div><strong>{{ summary.pending }}</strong><span>待完成任务</span></div>
+    </div>
+    <p>当前主要薄弱点：{{ summary.weak_points }}。下一步建议优先复盘高频错题，并把连续出错的知识点前移到后续计划中。</p>
+  </section>
+</section>
+{% endblock %}

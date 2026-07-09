@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="settings-layout">
+  <section class="panel settings-panel">
+    <div class="section-title">
+      <h2>学习档案</h2>
+      {% if profile %}
+      <a class="ghost-link" href="/reset" data-smooth-link>重置 Demo</a>
+      {% endif %}
+    </div>
+    <form method="post" action="/">
+      <label>学生姓名</label>
+      <input type="text" name="name" value="{{ profile.name if profile else defaults.name }}" required>
+
+      <label>课程名称</label>
+      <input type="text" name="subject" value="{{ profile.subject if profile else defaults.subject }}" required>
+
+      <label>考试日期</label>
+      <input type="date" name="exam_date" value="{{ profile.exam_date if profile else defaults.exam_date }}" required>
+
+      <label>每日学习时长（小时）</label>
+      <input type="number" name="daily_hours" min="0.5" step="0.5" value="{{ profile.daily_hours if profile else defaults.daily_hours }}">
+
+      <label>薄弱知识点（用 ; 分隔）</label>
+      <input type="text" name="weak_topics" value="{{ profile.weak_topics if profile else defaults.weak_topics }}">
+
+      <button type="submit">保存并生成计划</button>
+    </form>
+  </section>
+</section>
+{% endblock %}

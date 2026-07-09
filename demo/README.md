@@ -52,4 +52,4 @@ cd c:\Users\m1307\Desktop\agentlearningtool\demo
 
 ## 当前完成度
 
-按项目介绍文档中的 Demo/MVP 要求估算，当前完成约 88%。已完成可演示闭环、登录保护、错题删除，并已为错题分析接入 OpenAI-compatible 大模型；尚未接入真实 OCR、多端同步和系统通知。
+按项目介绍文档中的 Demo/MVP 要求估算，当前完成约 94%。已完成可演示闭环、登录保护、错题删除、真实 OCR 拍照识别，并已为错题分析接入 OpenAI-compatible 大模型；尚未接入多端同步和系统通知。

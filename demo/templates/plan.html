@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="section-title">
+    <h2>复习计划</h2>
+    <span class="pill">{{ summary.completed }}/{{ summary.plan_days }} 已完成</span>
+  </div>
+  <div class="plan-source">{{ plan_source }}</div>
+  <div class="plan-board">
+    {% for item in plan %}
+    <article class="plan-item {% if item.completed %}is-done{% endif %}">
+      <div class="day">Day {{ item.day }} · {{ item.date }}</div>
+      <h3>{{ item.task }}</h3>
+      <p>{{ item.focus }}</p>
+      <div class="task-meta">
+        <span>{{ item.minutes }} 分钟</span>
+        <span>优先级 {{ item.priority }}</span>
+      </div>
+      <form method="post" action="/toggle/{{ item.day }}">
+        <button type="submit" class="small-btn">{{ "撤销完成" if item.completed else "标记完成" }}</button>
+      </form>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

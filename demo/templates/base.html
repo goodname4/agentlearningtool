@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智学伙伴 Demo</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar app-header">
+      <div>
+        <p class="eyebrow">Agent 创新 · 学习复盘闭环</p>
+        <h1>智学伙伴</h1>
+        <p class="subtitle">面向大学生的主动式学习计划与错题复盘 Agent</p>
+      </div>
+      <div class="top-actions">
+        <form method="post" action="/logout" data-no-ajax>
+          <button type="submit" class="ghost-button">退出</button>
+        </form>
+      </div>
+    </header>
+
+    <nav class="module-nav" aria-label="功能模块">
+      <a class="{{ 'active' if current_view == 'overview' else '' }}" href="/overview" data-smooth-link>总览</a>
+      <a class="{{ 'active' if current_view == 'plan' else '' }}" href="/plan" data-smooth-link>复习计划</a>
+      <a class="{{ 'active' if current_view == 'wrong' else '' }}" href="/wrong" data-smooth-link>错题分析</a>
+      <a class="{{ 'active' if current_view == 'review' else '' }}" href="/review" data-smooth-link>复盘诊断</a>
+      <a class="{{ 'active' if current_view == 'report' else '' }}" href="/report" data-smooth-link>学习报告</a>
+      <a class="{{ 'active' if current_view == 'settings' else '' }}" href="/settings" data-smooth-link>档案设置</a>
+    </nav>
+
+    {% if profile %}
+    <section class="profile-strip">
+      <div>
+        <span>学生</span>
+        <strong>{{ profile.name }}</strong>
+      </div>
+      <div>
+        <span>课程</span>
+        <strong>{{ profile.subject }}</strong>
+      </div>
+      <div>
+        <span>考试日期</span>
+        <strong>{{ profile.exam_date }}</strong>
+      </div>
+      <div>
+        <span>每日时长</span>
+        <strong>{{ profile.daily_hours }} 小时</strong>
+      </div>
+      <div class="model-status {{ 'online' if llm_enabled else 'offline' }}">
+        {{ openai_model if llm_enabled else "本地规则兜底" }}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="content module-content">
+      {% if not profile and current_view != 'settings' %}
+      <section class="empty-state panel">
+        <h2>先建立学习档案</h2>
+        <p>填写课程、考试日期、每日学习时长和薄弱知识点后，系统会生成复习计划、错题复盘和阶段报告。</p>
+        <a class="primary-link" href="/settings" data-smooth-link>去填写档案</a>
+      </section>
+      {% else %}
+      {% block content %}{% endblock %}
+      {% endif %}
+    </section>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

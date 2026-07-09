@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="module-grid overview-grid">
+  <article class="summary-hero panel">
+    <div class="section-title">
+      <h2>今日学习总览</h2>
+      <a class="ghost-link" href="/settings" data-smooth-link>编辑档案</a>
+    </div>
+    <div class="plan-source">{{ plan_source }}</div>
+    <div class="reminder">{{ active_reminder }}</div>
+    <div class="stat-row">
+      <div><strong>{{ summary.completion_rate }}%</strong><span>计划完成率</span></div>
+      <div><strong>{{ summary.completed }}/{{ summary.plan_days }}</strong><span>已完成任务</span></div>
+      <div><strong>{{ summary.wrong_count }}</strong><span>错题记录</span></div>
+      <div><strong>{{ summary.pending }}</strong><span>待完成任务</span></div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="section-title">
+      <h2>下一步任务</h2>
+      <a class="ghost-link" href="/plan" data-smooth-link>查看计划</a>
+    </div>
+    {% if pending_plan %}
+    <div class="compact-list">
+      {% for item in pending_plan[:3] %}
+      <div>
+        <strong>Day {{ item.day }} · {{ item.date }}</strong>
+        <span>{{ item.task }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">当前计划已全部完成。</p>
+    {% endif %}
+  </article>
+
+  <article class="panel">
+    <div class="section-title">
+      <h2>待复盘内容</h2>
+      <a class="ghost-link" href="/review" data-smooth-link>查看复盘</a>
+    </div>
+    {% if review_schedule %}
+    <div class="compact-list">
+      {% for item in review_schedule[:3] %}
+      <div>
+        <strong>{{ item.due }}</strong>
+        <span>{{ item.knowledge_point }} · {{ item.days }} 天后</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">录入错题后会自动生成复盘日程。</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}
