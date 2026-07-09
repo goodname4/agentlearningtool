@@ -118,6 +118,24 @@ def normalize_plan_items(items, exam_date_str, daily_hours, weak_topics_raw):
         topic = weak_topics[index % len(weak_topics)]
         focus = str(raw.get("focus") or "主动复习").strip()
         task = str(raw.get("task") or f"{topic} 复盘 + 变式训练").strip()
+        generic_topic_markers = [
+            "薄弱点A",
+            "薄弱点B",
+            "薄弱点C",
+            "薄弱知识点A",
+            "薄弱知识点B",
+            "薄弱知识点C",
+            "薄弱点",
+            "该薄弱点",
+            "??????",
+            "?????",
+        ]
+        for marker in generic_topic_markers:
+            task = task.replace(marker, topic)
+            focus = focus.replace(marker, topic)
+        if not any(weak_topic in f"{task} {focus}" for weak_topic in weak_topics):
+            task = f"{topic}：{task}"
+            focus = f"{topic}专项"
         minutes = raw.get("minutes", int(daily_hours * 60))
         try:
             minutes = int(minutes)
